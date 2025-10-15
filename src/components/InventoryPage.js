@@ -1,5 +1,4 @@
 import React, { useMemo } from "react";
-import SectionCard from "./SectionCard";
 import './InventoryPage.css';
 import { exportToExcel } from "./exportToExcel";
 
@@ -25,7 +24,7 @@ const InventoryPage = ({ totals, salesEntries, purchaseEntries, expenseEntries, 
             endingInventoryEstimate: parseFloat(openingGoldBalance || 0) + totalPurchaseWeight - totalSalesWeight,
             netProfit: netProfit,
         };
-    }, [totals, salesEntries, purchaseEntries, expenseEntries, openingGoldBalance]);
+    }, [totals, salesEntries, purchaseEntries, openingGoldBalance]);
 
     const handleExport = () => {
         const dataToExport = [
