@@ -13,7 +13,7 @@ const Header = () => {
     return (
         <header className="app-header">
             <div className="app-header__logo">
-                <h1>نظام إدارة الذهب</h1>
+                <h1>نظام إدارة الحرم الشريف</h1>
             </div>
             <nav className="main-nav">
                 <NavLink className={"nav-link"} to="/" end><FiGrid /> <span>اللوحة اليومية</span></NavLink>
