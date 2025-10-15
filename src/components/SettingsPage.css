@@ -1,0 +1,49 @@
+.settings-page h2 {
+    margin-top: 0;
+    font-size: 1.75rem;
+    color: #1f2d3d;
+    margin-bottom: 1.5rem;
+}
+
+.settings-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.settings-actions .button--primary,
+.settings-actions .button--secondary {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+.settings-actions .button--primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.settings-note {
+    color: #5a677d;
+    background-color: #f7f5ef;
+    padding: 1rem;
+    border-radius: 8px;
+    border-right: 4px solid #d4af37;
+}
+
+/* تحسينات للشاشات الصغيرة (الهواتف) */
+@media (max-width: 768px) {
+    .settings-actions {
+        flex-direction: column;
+        /* ترتيب الأزرار بشكل عمودي */
+        align-items: stretch;
+        /* جعل الأزرار تتمدد بعرض الحاوية */
+    }
+
+    .settings-actions .button--secondary {
+        text-align: center;
+        /* توسيط النص داخل زر "استعادة البيانات" */
+    }
+}

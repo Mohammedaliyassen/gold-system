@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap');
+
+* {
+  direction: rtl;
+  box-sizing: border-box;
+}
+
+.app {
+  font-family: 'Cairo', "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f7fb;
+  min-height: 100vh;
+  color: #1f2d3d;
+  line-height: 1.6;
+}
+
+.app__header {
+  background: linear-gradient(135deg, #d4af37, #f9d976);
+  color: #fff;
+  padding: 2rem 3rem;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.app__header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.app__nav {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.app__nav button {
+  background-color: #ffffff;
+  border: 1px solid #d4af37;
+  border-radius: 30px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2d3d;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.app__nav button:hover,
+.app__nav button.active {
+  background-color: #d4af37;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
+}
+
+.app__content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+@media (max-width: 768px) {
+  .app__header h1 {
+    font-size: 2rem;
+  }
+
+  .app__nav {
+    padding: 1rem;
+  }
+
+  .app__content {
+    padding: 1rem;
+  }
+}
+
+
+
+
+.section-form__actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.button--secondary-small,
+.button--secondary {
+  background-color: #d4af37;
+  border: 1px solid #d4af37;
+  border-radius: 10px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.button--secondary-small:hover {
+  background-color: #61e53694;
+  color: #cacf02;
+  box-shadow: 0 8px 20px rgba(47, 236, 0, 0.3);
+}
+
+.section-card__header-action {
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+}
+
+.inventory-page__header {
+  display: flex;
+  padding: 30px;
+}

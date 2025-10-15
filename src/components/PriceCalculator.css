@@ -1,0 +1,133 @@
+.price-calculator {
+    background-color: #ffffff;
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(31, 45, 61, 0.08);
+}
+
+.price-calculator h2 {
+    margin-top: 0;
+    font-size: 1.75rem;
+    color: #1f2d3d;
+}
+
+.instant-calculator-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.price-calculator__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.price-calculator__card {
+    background-color: #fdfdfd;
+    border-radius: 18px;
+    padding: 1.25rem;
+    box-shadow: 0 6px 20px rgba(31, 45, 61, 0.06);
+}
+
+.price-calculator__card h3 {
+    margin-top: 0;
+    font-size: 1.3rem;
+    color: #1f2d3d;
+}
+
+.price-calculator__form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.price-calculator__form label {
+    display: flex;
+    flex-direction: column;
+    font-weight: 600;
+    color: #1f2d3d;
+    font-size: 0.95rem;
+}
+
+.price-calculator__form input {
+    margin-top: 0.35rem;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid #dce3eb;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease;
+}
+
+.price-calculator__form input:focus {
+    outline: none;
+    border-color: #d4af37;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+}
+
+.price-calculator__form button {
+    margin-top: 0.5rem;
+    align-self: flex-start;
+    background-color: #d4af37;
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 0.6rem 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.price-calculator__form button:hover {
+    background-color: #b9942d;
+    transform: translateY(-1px);
+}
+
+.price-output {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f7f5ef;
+    padding: 0.85rem 1rem;
+    border-radius: 12px;
+    color: #6b5807;
+    font-weight: 600;
+}
+
+.helper-text {
+    font-size: 0.85rem;
+    color: #7a8794;
+    margin: 0;
+}
+
+.karat-select-container {
+    position: relative;
+    width: auto;
+}
+
+.karat {
+    height: 40px;
+    padding: 5px;
+    font-size: 18px;
+    border: 1px solid #dce3eb;
+    outline: none;
+    border-radius: 10px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    width: 100%;
+
+}
+
+
+.karat-select-container::after {
+    content: '▼';
+    font-size: 14px;
+    color: #333;
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    pointer-events: none;
+}

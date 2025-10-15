@@ -1,0 +1,54 @@
+.inventory-page__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.inventory-page h2 {
+    margin: 0;
+    font-size: 1.75rem;
+    color: #1f2d3d;
+}
+
+/* Re-using styles from ReportsPage.css for consistency */
+.inventory-page .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.inventory-page .summary-card {
+    background-color: #fdfdfd;
+    border-radius: 18px;
+    padding: 1.25rem;
+    box-shadow: 0 6px 20px rgba(31, 45, 61, 0.06);
+    text-align: center;
+}
+
+.inventory-page .profit-card .summary-value {
+    color: #28a745;
+    /* Green for profit */
+}
+
+.inventory-page .inventory-card .summary-value {
+    color: #17a2b8;
+    /* Info blue for inventory */
+}
+
+.inventory-page .inventory-input {
+    width: 80%;
+    padding: 0.5rem;
+    border: 1px solid #dce3eb;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f2d3d;
+    margin-bottom: 0.5rem;
+}
+
+/* Other styles from ReportsPage.css like h3, .summary-value, .summary-label are implicitly used */

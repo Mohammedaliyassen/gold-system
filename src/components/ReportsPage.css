@@ -1,0 +1,160 @@
+.reports-page__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.reports-page h2 {
+    margin: 0;
+    font-size: 1.75rem;
+    color: #1f2d3d;
+}
+
+.period-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 1.5rem;
+    background-color: #f7f5ef;
+    padding: 8px;
+    border-radius: 12px;
+}
+
+.period-selector button {
+    flex-grow: 1;
+    padding: 0.75rem 1rem;
+    border: none;
+    background-color: transparent;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    color: #6b5807;
+}
+
+.period-selector button:hover {
+    background-color: #e9e4d9;
+}
+
+.period-selector button.active {
+    background-color: #d4af37;
+    color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    background-color: #fdfdfd;
+    border-radius: 18px;
+    padding: 1.25rem;
+    box-shadow: 0 6px 20px rgba(31, 45, 61, 0.06);
+    text-align: center;
+}
+
+.summary-card h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    color: #1f2d3d;
+}
+
+.summary-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #d4af37;
+    margin: 0.5rem 0;
+}
+
+.summary-label {
+    font-size: 0.85rem;
+    color: #8a97a6;
+    margin: 0;
+}
+
+.custom-range-selector {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    background-color: #f7f5ef;
+    padding: 1rem;
+    border-radius: 12px;
+}
+
+.custom-range-selector label {
+    font-weight: 600;
+    color: #6b5807;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.custom-range-selector input {
+    padding: 0.5rem;
+    border: 1px solid #d4af37;
+    border-radius: 8px;
+}
+
+.printContainer {
+    margin: 30px;
+    display: flex;
+    justify-content: center;
+}
+
+.button--print {
+    background-color: #d4af37;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 0.6rem 1.5rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.button--print:hover {
+    background-color: #6b5807;
+}
+
+@media print {
+
+    /* إخفاء العناصر غير المرغوب فيها عند الطباعة */
+    .app-header,
+    .period-selector,
+    .custom-range-selector,
+    .button--print {
+        display: none !important;
+    }
+
+    /* إعادة تعيين تخطيط الصفحة للطباعة */
+    body, .app, .app-main {
+        background-color: #fff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+    }
+
+    .reports-page {
+        padding: 1cm;
+    }
+
+    /* إزالة الظلال والخلفيات من البطاقات */
+    .summary-card,
+    .section-card {
+        box-shadow: none !important;
+        border: 1px solid #ccc;
+        page-break-inside: avoid;
+    }
+
+    .summary-grid {
+        page-break-after: always;
+    }
+}
