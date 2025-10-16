@@ -20,6 +20,7 @@ const Header = () => {
                 <NavLink className={"nav-link"} to="/inventory"><FiArchive /> <span>الجرد</span></NavLink>
                 <NavLink className={"nav-link"} to="/scrap"><FiRepeat /> <span>إدارة الكسر</span></NavLink>
                 <NavLink className={"nav-link"} to="/reports"><FiBarChart2 /> <span>التقارير</span></NavLink>
+                <NavLink className={"nav-link"} to="/debts"><FiBarChart2 /> المديونيات</NavLink>
                 <NavLink className={"nav-link"} to="/settings"><FiSettings /> <span>الإعدادات</span></NavLink>
             </nav>
             <div className="mobile-menu-icon" onClick={toggleMobileMenu}>
@@ -30,6 +31,7 @@ const Header = () => {
                 <NavLink className={"nav-link"} onClick={toggleMobileMenu} to="/inventory"><FiArchive /> الجرد</NavLink>
                 <NavLink className={"nav-link"} onClick={toggleMobileMenu} to="/scrap"><FiRepeat /> إدارة الكسر</NavLink>
                 <NavLink className={"nav-link"} onClick={toggleMobileMenu} to="/reports"><FiBarChart2 /> التقارير</NavLink>
+                <NavLink className={"nav-link"} onClick={toggleMobileMenu} to="/debts"><FiBarChart2 /> المديونيات</NavLink>
                 <NavLink className={"nav-link"} onClick={toggleMobileMenu} to="/settings"><FiSettings /> الإعدادات</NavLink>
             </nav>
         </header>

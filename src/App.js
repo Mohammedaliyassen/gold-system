@@ -4,6 +4,7 @@ import Dashboard from './components/Dashboard';
 import PriceCalculator from './components/PriceCalculator';
 import InventoryPage from './components/InventoryPage';
 import ScrapManagementPage from './components/ScrapManagementPage';
+import CustomerDebtsPage from './components/CustomerDebtsPage'; // استيراد المكون الجديد
 import ReportsPage from './components/ReportsPage';
 import SettingsPage from './components/SettingsPage'; // جديد
 import Header from './components/Header';
@@ -23,15 +24,19 @@ const getInitialState = (key, defaultValue) => {
 const App = () => {
     const [salesEntries, setSalesEntries] = useState(() => getInitialState('salesEntries', []).map(entry => ({
         ...entry,
-        customerName: entry.customerName || '',
-        customerPhone: entry.customerPhone || ''
+        customerName: entry.customerName || '', // التأكد من وجود اسم العميل
+        customerPhone: entry.customerPhone || '', // التأكد من وجود هاتف العميل
+        amountPaid: entry.amountPaid === undefined ? entry.finalPrice : entry.amountPaid // التوافق مع البيانات القديمة
     })));
 
 
 
 
 
-    const [purchaseEntries, setPurchaseEntries] = useState(() => getInitialState('purchaseEntries', []));
+    const [purchaseEntries, setPurchaseEntries] = useState(() => getInitialState('purchaseEntries', []).map(entry => ({
+        ...entry,
+        amountPaid: entry.amountPaid === undefined ? entry.cost : entry.amountPaid // التوافق مع البيانات القديمة
+    })));
     const [expenseEntries, setExpenseEntries] = useState(() => getInitialState('expenseEntries', []));
     const [pricing, setPricing] = useState(() => getInitialState('pricing', {
         goldPricePerGram: 0,
@@ -43,6 +48,8 @@ const App = () => {
     const [merchants, setMerchants] = useState(() => getInitialState('merchants', []));
     const [scrapTransactions, setScrapTransactions] = useState(() => getInitialState('scrapTransactions', []));
     const [openingGoldBalance, setOpeningGoldBalance] = useState(() => getInitialState('openingGoldBalance', 0));
+    const [purchasedUsedGold, setPurchasedUsedGold] = useState(() => getInitialState('purchasedUsedGold', 0));
+    const [financialDebts, setFinancialDebts] = useState(() => getInitialState('financialDebts', []));
 
     // useEffect لحفظ بيانات التجار عند تغيرها
     useEffect(() => {
@@ -71,6 +78,16 @@ const App = () => {
     useEffect(() => {
         localStorage.setItem('openingGoldBalance', JSON.stringify(openingGoldBalance));
     }, [openingGoldBalance]);
+
+    // useEffect لحفظ الذهب المستعمل المشترى
+    useEffect(() => {
+        localStorage.setItem('purchasedUsedGold', JSON.stringify(purchasedUsedGold));
+    }, [purchasedUsedGold]);
+
+    // useEffect لحفظ الديون المالية
+    useEffect(() => {
+        localStorage.setItem('financialDebts', JSON.stringify(financialDebts));
+    }, [financialDebts]);
 
     // useEffect لحفظ أسعار الذهب اليومية
     useEffect(() => {
@@ -129,6 +146,23 @@ const App = () => {
                                     expenseEntries={expenseEntries}
                                     openingGoldBalance={openingGoldBalance}
                                     onOpeningGoldBalanceChange={setOpeningGoldBalance}
+                                    purchasedUsedGold={purchasedUsedGold}
+                                    onPurchasedUsedGoldChange={setPurchasedUsedGold}
+                                    scrapTransactions={scrapTransactions}
+                                    merchants={merchants}
+                                    financialDebts={financialDebts}
+                                />
+                            }
+                        />
+                        <Route
+                            path="/debts"
+                            element={
+                                <CustomerDebtsPage
+                                    salesEntries={salesEntries}
+                                    onSalesEntriesChange={setSalesEntries}
+                                    purchaseEntries={purchaseEntries}
+                                    financialDebts={financialDebts}
+                                    onFinancialDebtsChange={setFinancialDebts}
                                 />
                             }
                         />
@@ -142,6 +176,10 @@ const App = () => {
                                 <ReportsPage
                                     salesEntries={salesEntries}
                                     purchaseEntries={purchaseEntries}
+                                    expenseEntries={expenseEntries} // التأكد من تمرير المصروفات
+                                    scrapTransactions={scrapTransactions} // التأكد من تمرير تعاملات الكسر
+                                    financialDebts={financialDebts} // التأكد من تمرير الديون المالية
+                                    merchants={merchants} // التأكد من تمرير التجار
                                 />
                             }
                         />

@@ -74,8 +74,46 @@
   }
 }
 
+.karat {
+  height: 40px;
+  padding: 5px;
+  font-size: 18px;
+  border: 1px solid #dce3eb;
+  outline: none;
+  border-radius: 10px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+  width: 100%;
 
+}
 
+.karat-select-container {
+  position: relative;
+  width: auto;
+}
+
+.karat-select-container select {
+  -webkit-appearance: none;
+  /* Remove default arrow */
+  appearance: none;
+  background-color: transparent;
+  outline: none;
+  padding-right: 20px;
+  /* Add some spacing for the dropdown icon */
+}
+
+.karat-select-container::after {
+  content: '▼';
+  font-size: 14px;
+  color: #333;
+  position: absolute;
+  top: 50%;
+  left: 15px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
 
 .section-form__actions {
   display: flex;

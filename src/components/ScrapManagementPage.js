@@ -20,7 +20,7 @@ const ScrapManagementPage = ({
         type: 'تسليم',
         weight: '',
         description: '',
-        price: ''
+        manufacturingValue: '' // تم التغيير من price
     });
 
     const handleAddMerchant = (e) => {
@@ -56,8 +56,8 @@ const ScrapManagementPage = ({
 
     const handleAddTransaction = (e) => {
         e.preventDefault();
-        if (!selectedMerchant || !transactionForm.weight || !transactionForm.price) {
-            alert('الرجاء اختيار تاجر وإدخال الوزن والسعر.');
+        if (!selectedMerchant || !transactionForm.weight) {
+            alert('الرجاء اختيار تاجر وإدخال الوزن.');
             return;
         }
         const newTransaction = {
@@ -67,7 +67,7 @@ const ScrapManagementPage = ({
             ...transactionForm,
         };
         onScrapTransactionsChange([...scrapTransactions, newTransaction]);
-        setTransactionForm({ type: 'تسليم', weight: '', description: '', price: '' });
+        setTransactionForm({ type: 'تسليم', weight: '', description: '', manufacturingValue: '' });
     };
 
     const handleUpdateTransaction = (transactionId) => {
@@ -102,9 +102,6 @@ const ScrapManagementPage = ({
             'تسليم (جم)': summary.totalDeliveryWeight.toFixed(2),
             'استلام (جم)': summary.totalReceiptWeight.toFixed(2),
             'رصيد الوزن (جم)': summary.weightBalance.toFixed(2),
-            'قيمة التسليم (ج)': summary.totalDeliveryValue.toFixed(2),
-            'قيمة الاستلام (ج)': summary.totalReceiptValue.toFixed(2),
-            'الرصيد المالي (ج)': summary.financialBalance.toFixed(2),
         }));
         exportToExcel(dataToExport, 'ملخص_أرصدة_التجار');
     };
@@ -116,8 +113,7 @@ const ScrapManagementPage = ({
             'نوع العملية': t.type,
             'الوصف': t.description,
             'الوزن (جرام)': t.weight,
-            'السعر/جرام': parseFloat(t.price || 0).toFixed(2),
-            'القيمة الإجمالية': (parseFloat(t.weight || 0) * parseFloat(t.price || 0)).toFixed(2),
+            'قيمة المصنعية': parseFloat(t.manufacturingValue || 0).toFixed(2),
         }));
         exportToExcel(dataToExport, `سجل_تعاملات_${merchantName.replace(/\s/g, '_')}`);
     };
@@ -153,25 +149,11 @@ const ScrapManagementPage = ({
 
             const weightBalance = totalReceiptWeight - totalDeliveryWeight;
 
-            const totalDeliveryValue = merchantTransactions
-                .filter(t => t.type === 'تسليم')
-                .reduce((sum, t) => sum + (parseFloat(t.weight || 0) * parseFloat(t.price || 0)), 0);
-
-            const totalReceiptValue = merchantTransactions
-                .filter(t => t.type === 'استلام')
-                .reduce((sum, t) => sum + (parseFloat(t.weight || 0) * parseFloat(t.price || 0)), 0);
-
-            // الرصيد المالي = قيمة ما تم تسليمه (مستحق لنا) - قيمة ما تم استلامه (مستحق علينا)
-            const financialBalance = totalDeliveryValue - totalReceiptValue;
-
             return {
                 ...merchant,
                 totalDeliveryWeight,
                 totalReceiptWeight,
                 weightBalance,
-                totalDeliveryValue,
-                totalReceiptValue,
-                financialBalance
             };
         });
     }, [merchants, scrapTransactions, merchantSearchTerm]);
@@ -201,9 +183,6 @@ const ScrapManagementPage = ({
                             <th>تسليم (جم)</th>
                             <th>استلام (جم)</th>
                             <th>رصيد الوزن (جم)</th>
-                            <th>قيمة التسليم (ج)</th>
-                            <th>قيمة الاستلام (ج)</th>
-                            <th>الرصيد المالي (ج)</th>
                             <th>إجراءات</th>
                         </tr>
                     </thead>
@@ -211,16 +190,11 @@ const ScrapManagementPage = ({
                         {merchantsSummary.length > 0 ? (
                             merchantsSummary.map(summary => (
                                 <tr key={summary.id}>
-                                    <td data-label="التاجر">{summary.name}</td>
-                                    <td data-label="تسليم (جم)" className="delivery">{summary.totalDeliveryWeight.toFixed(2)}</td>
-                                    <td data-label="استلام (جم)" className="receipt">{summary.totalReceiptWeight.toFixed(2)}</td>
-                                    <td data-label="رصيد الوزن" className={summary.weightBalance >= 0 ? 'receipt' : 'delivery'}>
+                                    <td>{summary.name}</td>
+                                    <td className="delivery">{summary.totalDeliveryWeight.toFixed(2)}</td>
+                                    <td className="receipt">{summary.totalReceiptWeight.toFixed(2)}</td>
+                                    <td className={summary.weightBalance >= 0 ? 'receipt' : 'delivery'}>
                                         {summary.weightBalance.toFixed(2)}
-                                    </td>
-                                    <td data-label="قيمة التسليم" className="delivery">{summary.totalDeliveryValue.toFixed(2)}</td>
-                                    <td data-label="قيمة الاستلام" className="receipt">{summary.totalReceiptValue.toFixed(2)}</td>
-                                    <td data-label="الرصيد المالي" className={summary.financialBalance >= 0 ? 'receipt' : 'delivery'}>
-                                        {summary.financialBalance.toFixed(2)}
                                     </td>
                                     <td>
                                         <button onClick={() => handleDeleteMerchant(summary.id)} className="button--danger-small">
@@ -231,7 +205,7 @@ const ScrapManagementPage = ({
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="8" className="empty-cell">لا يوجد تجار لعرض ملخص لهم.</td>
+                                <td colSpan="5" className="empty-cell">لا يوجد تجار لعرض ملخص لهم.</td>
                             </tr>
                         )}
                     </tbody>
@@ -269,8 +243,8 @@ const ScrapManagementPage = ({
                             <input type="text" name="description" value={transactionForm.description} onChange={handleTransactionChange} placeholder="ذهب عيار 21" />
                         </label>
                         <label>
-                            السعر (للجرام)
-                            <input type="number" name="price" value={transactionForm.price} onChange={handleTransactionChange} placeholder="2000" required />
+                            قيمة المصنعية
+                            <input type="number" name="manufacturingValue" value={transactionForm.manufacturingValue} onChange={handleTransactionChange} placeholder="100" />
                         </label>
                         <button type="submit" disabled={!selectedMerchant}>إضافة العملية</button>
                     </form>
@@ -308,8 +282,7 @@ const ScrapManagementPage = ({
                                     <th>نوع العملية</th>
                                     <th>الوصف</th>
                                     <th>الوزن (جرام)</th>
-                                    <th>السعر/جرام</th>
-                                    <th>القيمة الإجمالية</th>
+                                    <th>قيمة المصنعية</th>
                                     <th>إجراءات</th>
                                 </tr>
                             </thead>
@@ -328,8 +301,7 @@ const ScrapManagementPage = ({
                                                 </td>
                                                 <td><input type="text" name="description" value={editedData.description} onChange={handleEditFormChange} /></td>
                                                 <td><input type="number" name="weight" value={editedData.weight} onChange={handleEditFormChange} /></td>
-                                                <td><input type="number" name="price" value={editedData.price} onChange={handleEditFormChange} /></td>
-                                                <td>{(parseFloat(editedData.weight || 0) * parseFloat(editedData.price || 0)).toFixed(2)}</td>
+                                                <td><input type="number" name="manufacturingValue" value={editedData.manufacturingValue} onChange={handleEditFormChange} /></td>
                                                 <td className="actions-cell">
                                                     <button onClick={() => handleUpdateTransaction(t.id)} className="button--success-small">حفظ</button>
                                                     <button onClick={handleCancelEdit} className="button--secondary-small">إلغاء</button>
@@ -338,12 +310,11 @@ const ScrapManagementPage = ({
                                         ) : (
                                             // الصف العادي
                                             <tr key={t.id}>
-                                                <td data-label="التاريخ">{t.date}</td>
-                                                <td data-label="نوع العملية" className={t.type === 'تسليم' ? 'delivery' : 'receipt'}>{t.type}</td>
-                                                <td data-label="الوصف">{t.description}</td>
-                                                <td data-label="الوزن (جرام)">{t.weight}</td>
-                                                <td data-label="السعر/جرام">{parseFloat(t.price || 0).toFixed(2)}</td>
-                                                <td data-label="القيمة الإجمالية">{(parseFloat(t.weight || 0) * parseFloat(t.price || 0)).toFixed(2)}</td>
+                                                <td>{t.date}</td>
+                                                <td className={t.type === 'تسليم' ? 'delivery' : 'receipt'}>{t.type}</td>
+                                                <td>{t.description}</td>
+                                                <td>{t.weight}</td>
+                                                <td>{parseFloat(t.manufacturingValue || 0).toFixed(2)}</td>
                                                 <td className="actions-cell">
                                                     <button onClick={() => handleStartEdit(t)} className="button--secondary-small">
                                                         تعديل
@@ -357,7 +328,7 @@ const ScrapManagementPage = ({
                                     )
                                 ) : (
                                     <tr>
-                                        <td colSpan="7" className="empty-cell">لا توجد تعاملات مسجلة مع هذا التاجر.</td>
+                                        <td colSpan="6" className="empty-cell">لا توجد تعاملات مسجلة مع هذا التاجر.</td>
                                     </tr>
                                 )}
                             </tbody>

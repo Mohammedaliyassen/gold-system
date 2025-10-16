@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import SalesSection from './SalesSection';
-import PurchaseSection from './PurchaseSection';
+import PurchaseSection from './PurchasesSection';
 import ExpensesSection from './ExpensesSection';
 import './Dashboard.css';
 

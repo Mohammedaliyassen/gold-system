@@ -158,3 +158,26 @@
         page-break-after: always;
     }
 }
+
+.details-tables-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.table-wrapper {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Re-using some classes from other files for consistency */
+.profit-amount {
+    color: var(--color-success);
+    font-weight: bold;
+}
+
+.debt-amount {
+    color: var(--color-danger);
+    font-weight: bold;
+}

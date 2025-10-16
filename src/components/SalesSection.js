@@ -15,6 +15,7 @@ const SalesSection = ({ entries, onEntriesChange }) => {
         customerPhone: "",
         customerName: "",
         finalPrice: "",
+        amountPaid: "",
         date: today,
     });
 
@@ -32,15 +33,16 @@ const SalesSection = ({ entries, onEntriesChange }) => {
 
     const handleSubmit = (event) => {
         event.preventDefault();
-        if (!formData.description || !formData.weight || !formData.finalPrice || !formData.karat) {
+        if (!formData.description || !formData.weight || !formData.finalPrice) {
             return;
         }
 
         onEntriesChange((prevEntries) => [
             ...prevEntries,
-            { ...formData, id: Date.now().toString() },
+            // إذا كان المبلغ المدفوع فارغاً، نعتبر أن السعر النهائي هو المبلغ المدفوع
+            { ...formData, id: Date.now().toString(), amountPaid: formData.amountPaid || formData.finalPrice },
         ]);
-        setFormData({ description: "", weight: "", karat: "21", finalPrice: "", date: today, customerName: "", customerPhone: "" }); // Reset all fields
+        setFormData({ description: "", weight: "", karat: "21", finalPrice: "", amountPaid: "", date: today, customerName: "", customerPhone: "" }); // Reset all fields
 
     };
 
@@ -83,7 +85,9 @@ const SalesSection = ({ entries, onEntriesChange }) => {
             'العيار': entry.karat,
             'اسم العميل': entry.customerName,
             'رقم هاتف العميل': entry.customerPhone,
-            'السعر النهائي (جنيه)': entry.finalPrice
+            'السعر النهائي (جنie)': entry.finalPrice,
+            'المبلغ المدفوع (جنيه)': entry.amountPaid,
+            'المبلغ المتبقي (جنيه)': (parseFloat(entry.finalPrice || 0) - parseFloat(entry.amountPaid || 0)).toFixed(2)
         }));
         // The function will export the currently filtered data
         exportToExcel(dataToExport, 'تقرير_المبيعات');
@@ -154,7 +158,7 @@ const SalesSection = ({ entries, onEntriesChange }) => {
                 </label>
                 <label>
                     العيار
-                    <select name="karat" value={formData.karat} onChange={handleInputChange}>
+                    <select className="karat" name="karat" value={formData.karat} onChange={handleInputChange}>
                         <option value="24">24</option>
                         <option value="22">22</option>
                         <option value="21">21</option>
@@ -171,6 +175,18 @@ const SalesSection = ({ entries, onEntriesChange }) => {
                         value={formData.finalPrice}
                         onChange={handleInputChange}
                         placeholder="2500"
+                    />
+                </label>
+                <label>
+                    المبلغ المدفوع (جنيه)
+                    <input
+                        name="amountPaid"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={formData.amountPaid}
+                        onChange={handleInputChange}
+                        placeholder="اتركه فارغاً للدفع الكامل"
                     />
                 </label>
                 <div className="section-form__actions">
@@ -201,14 +217,16 @@ const SalesSection = ({ entries, onEntriesChange }) => {
                         <th>الوزن (جرام)</th>
                         <th>العيار</th>
 
-                        <th>السعر النهائي (جنيه)</th>
+                        <th>السعر النهائي</th>
+                        <th>المدفوع</th>
+                        <th>المتبقي</th>
                         <th>إجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
                     {filteredEntries.length === 0 ? (
                         <tr>
-                            <td colSpan={8} className="empty-cell">لم يتم تسجيل مبيعات بعد.</td>
+                            <td colSpan={9} className="empty-cell">لم يتم تسجيل مبيعات بعد.</td>
                         </tr>
                     ) : (
                         filteredEntries.map((entry) =>
@@ -228,6 +246,8 @@ const SalesSection = ({ entries, onEntriesChange }) => {
                                         </select>
                                     </td>
                                     <td><input type="number" name="finalPrice" value={editedData.finalPrice} onChange={handleEditInputChange} /></td>
+                                    <td><input type="number" name="amountPaid" value={editedData.amountPaid} onChange={handleEditInputChange} /></td>
+                                    <td>{(parseFloat(editedData.finalPrice || 0) - parseFloat(editedData.amountPaid || 0)).toFixed(2)}</td>
                                     <td className="actions-cell">
                                         <button onClick={() => handleUpdateEntry(entry.id)} className="button--success-small">حفظ</button>
                                         <button onClick={handleCancelEdit} className="button--secondary-small">إلغاء</button>
@@ -241,7 +261,9 @@ const SalesSection = ({ entries, onEntriesChange }) => {
                                     <td data-label="رقم الهاتف">{entry.customerPhone}</td>
                                     <td data-label="الوزن (جرام)">{entry.weight}</td>
                                     <td data-label="العيار">{entry.karat || 'N/A'}</td>
-                                    <td data-label="السعر النهائي">{entry.finalPrice}</td>
+                                    <td data-label="السعر النهائي">{parseFloat(entry.finalPrice || 0).toFixed(2)}</td>
+                                    <td data-label="المدفوع">{parseFloat(entry.amountPaid || 0).toFixed(2)}</td>
+                                    <td data-label="المتبقي" className={(parseFloat(entry.finalPrice || 0) - parseFloat(entry.amountPaid || 0)) > 0 ? 'debt-amount' : ''}>{(parseFloat(entry.finalPrice || 0) - parseFloat(entry.amountPaid || 0)).toFixed(2)}</td>
                                     <td className="actions-cell">
                                         <button onClick={() => handleStartEdit(entry)} className="button--secondary-small">
                                             تعديل

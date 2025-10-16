@@ -7,6 +7,7 @@ const PriceCalculator = ({ pricing, onPricingChange, onSalesEntriesChange }) => 
     const [karat, setKarat] = useState(21);
     const [customerName, setCustomerName] = useState('');
     const [customerPhone, setCustomerPhone] = useState('');
+    const [amountPaid, setAmountPaid] = useState('');
     const [quickSaleData, setQuickSaleData] = useState({
         description: '',
         date: today,
@@ -57,6 +58,7 @@ const PriceCalculator = ({ pricing, onPricingChange, onSalesEntriesChange }) => 
             customerName: customerName,
             customerPhone: customerPhone,
             finalPrice: finalPrice.toFixed(2),
+            amountPaid: amountPaid || finalPrice.toFixed(2), // إذا كان فارغاً، يعتبر المبلغ كاملاً
         };
 
         onSalesEntriesChange(prev => [...prev, newSaleEntry]);
@@ -66,6 +68,7 @@ const PriceCalculator = ({ pricing, onPricingChange, onSalesEntriesChange }) => 
         setKarat(21);
         setCustomerName('');
         setCustomerPhone('');
+        setAmountPaid('');
         setQuickSaleData({ description: '', date: today });
         alert("تمت إضافة عملية البيع بنجاح!");
     };
@@ -145,7 +148,7 @@ const PriceCalculator = ({ pricing, onPricingChange, onSalesEntriesChange }) => 
                         </div>
                         <div className="price-output">
                             <span>السعر النهائي (جنيه)</span>
-                            <strong>{finalPrice.toFixed(2)}</strong>
+                            <input type='number' value={finalPrice.toFixed(0)}></input>
                         </div>
                         <hr className="quick-sale-divider" />
                         <label>
@@ -162,6 +165,10 @@ const PriceCalculator = ({ pricing, onPricingChange, onSalesEntriesChange }) => 
                         </label>
                         <label>
                             رقم هاتف العميل
+                        </label>
+                        <label>
+                            المبلغ المدفوع (جنيه)
+                            <input type="number" name="amountPaid" value={amountPaid} onChange={(e) => setAmountPaid(e.target.value)} placeholder="اتركه فارغاً للدفع الكامل" />
                         </label>
                         <input type="tel" name="customerPhone" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} placeholder="رقم الهاتف" />
                         <button type="button" onClick={handleQuickSale} className="button--quick-sale">إضافة عملية البيع</button>
