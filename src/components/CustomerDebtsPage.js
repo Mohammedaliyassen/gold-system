@@ -11,13 +11,20 @@ const CustomerDebtsPage = ({ salesEntries, onSalesEntriesChange, purchaseEntries
     const [newDebtSupplier, setNewDebtSupplier] = useState('');
     const [newDebtAmount, setNewDebtAmount] = useState('');
     const [newDebtSupplierPhone, setNewDebtSupplierPhone] = useState('');
+
+    // State for new customer debt
+    const [newCustomerDebtName, setNewCustomerDebtName] = useState('');
+    const [newCustomerDebtPhone, setNewCustomerDebtPhone] = useState('');
+    const [newCustomerDebtAmount, setNewCustomerDebtAmount] = useState('');
+    const [newCustomerDebtDescription, setNewCustomerDebtDescription] = useState('دين مالي');
     const [newDebtNotes, setNewDebtNotes] = useState('');
-    const [updatedDebtNotes, setUpdatedDebtNotes] = useState('');
 
     // State for paying off a financial debt
     const [selectedDebtId, setSelectedDebtId] = useState('');
     const [debtPaymentAmount, setDebtPaymentAmount] = useState('');
     const [viewingDebtId, setViewingDebtId] = useState(''); // New state for viewing details
+    const [updatedDebtNotes, setUpdatedDebtNotes] = useState('');
+
 
     const customerDebts = useMemo(() => {
         const debts = {};
@@ -94,6 +101,33 @@ const CustomerDebtsPage = ({ salesEntries, onSalesEntriesChange, purchaseEntries
         setSelectedCustomer('');
     };
 
+    const handleAddCustomerDebt = () => {
+        if (!newCustomerDebtName || !newCustomerDebtAmount || parseFloat(newCustomerDebtAmount) <= 0) {
+            alert('الرجاء إدخال اسم العميل ومبلغ صحيح للدين.');
+            return;
+        }
+
+        const debtValue = parseFloat(newCustomerDebtAmount);
+
+        const newDebtEntry = {
+            id: Date.now().toString(),
+            date: new Date().toISOString(),
+            description: newCustomerDebtDescription || 'دين مالي',
+            customerName: newCustomerDebtName,
+            customerPhone: newCustomerDebtPhone,
+            finalPrice: debtValue, // This is the debt amount
+            amountPaid: 0, // No payment made at time of debt creation
+            weight: 0,
+            karat: '',
+        };
+
+        onSalesEntriesChange(prev => [...prev, newDebtEntry]);
+        alert(`تم تسجيل دين بقيمة ${debtValue.toFixed(2)} على العميل ${newCustomerDebtName}`);
+        setNewCustomerDebtName('');
+        setNewCustomerDebtPhone('');
+        setNewCustomerDebtAmount('');
+        setNewCustomerDebtDescription('دين مالي');
+    };
     const selectedCustomerTransactions = useMemo(() => {
         if (!selectedCustomer) return [];
         return salesEntries.filter(sale => sale.customerName === selectedCustomer);
@@ -259,6 +293,49 @@ const CustomerDebtsPage = ({ salesEntries, onSalesEntriesChange, purchaseEntries
                             />
                         </label>
                         <button onClick={handleAddPayment} disabled={!selectedCustomer || !paymentAmount}>إضافة دفعة</button>
+                    </div>
+                </SectionCard>
+                <SectionCard title="تسجيل دين عميل (لصالح المحل)">
+                    <div className="section-form">
+                        <label>
+                            اسم العميل
+                            <input
+                                type="text"
+                                value={newCustomerDebtName}
+                                onChange={(e) => setNewCustomerDebtName(e.target.value)}
+                                placeholder="اسم العميل"
+                            />
+                        </label>
+                        <label>
+                            رقم الهاتف (اختياري)
+                            <input
+                                type="tel"
+                                value={newCustomerDebtPhone}
+                                onChange={(e) => setNewCustomerDebtPhone(e.target.value)}
+                                placeholder="01xxxxxxxxx"
+                            />
+                        </label>
+                        <label>
+                            مبلغ الدين (جنيه)
+                            <input
+                                type="number"
+                                value={newCustomerDebtAmount}
+                                onChange={(e) => setNewCustomerDebtAmount(e.target.value)}
+                                placeholder="1000"
+                            />
+                        </label>
+                        <label>
+                            الوصف/السبب
+                            <input
+                                type="text"
+                                value={newCustomerDebtDescription}
+                                onChange={(e) => setNewCustomerDebtDescription(e.target.value)}
+                                placeholder="دين مالي"
+                            />
+                        </label>
+                        <button onClick={handleAddCustomerDebt} disabled={!newCustomerDebtName || !newCustomerDebtAmount}>
+                            إضافة دين عميل
+                        </button>
                     </div>
                 </SectionCard>
 
