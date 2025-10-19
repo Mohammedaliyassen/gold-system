@@ -51,6 +51,10 @@ const App = () => {
     const [purchasedUsedGold, setPurchasedUsedGold] = useState(() => getInitialState('purchasedUsedGold', 0));
     const [financialDebts, setFinancialDebts] = useState(() => getInitialState('financialDebts', []));
 
+    // State for opening cash balance in inventory
+    const [openingCashBalance, setOpeningCashBalance] = useState(() => getInitialState('openingCashBalance', ''));
+
+
     // useEffect لحفظ بيانات التجار عند تغيرها
     useEffect(() => {
         localStorage.setItem('merchants', JSON.stringify(merchants));
@@ -93,6 +97,11 @@ const App = () => {
     useEffect(() => {
         localStorage.setItem('pricing', JSON.stringify(pricing));
     }, [pricing]);
+
+    useEffect(() => {
+        localStorage.setItem('openingCashBalance', JSON.stringify(openingCashBalance));
+    }, [openingCashBalance]);
+
 
     const totals = useMemo(() => {
         const sumByKey = (records, key) =>
@@ -151,6 +160,8 @@ const App = () => {
                                     scrapTransactions={scrapTransactions}
                                     merchants={merchants}
                                     financialDebts={financialDebts}
+                                    openingCashBalance={openingCashBalance}
+                                    onOpeningCashBalanceChange={setOpeningCashBalance}
                                 />
                             }
                         />

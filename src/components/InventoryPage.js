@@ -2,7 +2,21 @@ import React, { useMemo } from "react";
 import './InventoryPage.css';
 import { exportToExcel } from "./exportToExcel";
 
-const InventoryPage = ({ totals, salesEntries, purchaseEntries, expenseEntries, openingGoldBalance, onOpeningGoldBalanceChange, purchasedUsedGold, onPurchasedUsedGoldChange, scrapTransactions, merchants, financialDebts }) => {
+const InventoryPage = ({
+    totals,
+    salesEntries,
+    purchaseEntries,
+    expenseEntries,
+    openingGoldBalance,
+    onOpeningGoldBalanceChange,
+    purchasedUsedGold,
+    onPurchasedUsedGoldChange,
+    scrapTransactions,
+    merchants,
+    financialDebts,
+    openingCashBalance,
+    onOpeningCashBalanceChange
+}) => {
     const summary = useMemo(() => {
         const totalSalesWeight = salesEntries.reduce(
             (sum, entry) => sum + parseFloat(entry.weight || 0),
@@ -39,6 +53,7 @@ const InventoryPage = ({ totals, salesEntries, purchaseEntries, expenseEntries, 
         const finalTotalCashIn = totalCashIn + totalCashInFromNewDebts;
         const finalTotalCashOut = totalCashOutPurchases + totalCashOutExpenses + totalCashOutForDebtPayments;
         const netCashFlow = finalTotalCashIn - finalTotalCashOut;
+        const closingCashBalance = parseFloat(openingCashBalance || 0) + netCashFlow;
 
         // Calculate gold movement from scrap transactions
         const totalGoldDeliveredToMerchant = scrapTransactions
@@ -57,7 +72,8 @@ const InventoryPage = ({ totals, salesEntries, purchaseEntries, expenseEntries, 
             monthlyPurchasesWeight: totalPurchaseWeight,
             monthlyExpenses: totals.expenseTotal,
             endingInventoryEstimate: (parseFloat(openingGoldBalance || 0) + totalPurchaseWeight + parseFloat(purchasedUsedGold || 0) + totalGoldReceivedFromMerchant) - (totalSalesWeight + totalGoldDeliveredToMerchant),
-            netCashFlow: netCashFlow,
+            netCashFlow,
+            closingCashBalance,
             totalCashIn: finalTotalCashIn,
             totalCashOut: finalTotalCashOut,
             totalGoldDeliveredToMerchant,
@@ -65,16 +81,19 @@ const InventoryPage = ({ totals, salesEntries, purchaseEntries, expenseEntries, 
             totalCashInFromNewDebts,
             totalCashOutForDebtPayments,
         };
-    }, [totals, salesEntries, purchaseEntries, expenseEntries, openingGoldBalance, purchasedUsedGold, scrapTransactions, financialDebts]);
+    }, [totals, salesEntries, purchaseEntries, expenseEntries, openingGoldBalance, purchasedUsedGold, scrapTransactions, financialDebts, openingCashBalance]);
 
     const handleExport = () => {
         const dataToExport = [
-            { 'البيان': 'إجمالي المبيعات (جنيه)', 'القيمة': summary.monthlySales.toFixed(2) },
+            { 'البيان': 'إجمالي فواتير المبيعات (جنيه)', 'القيمة': summary.totalBilledSales.toFixed(2) },
             { 'البيان': 'إجمالي وزن المبيعات (جرام)', 'القيمة': summary.monthlySalesWeight.toFixed(2) },
-            { 'البيان': 'إجمالي المشتريات (جنيه)', 'القيمة': summary.monthlyPurchases.toFixed(2) },
+            { 'البيان': 'إجمالي فواتير المشتريات (جنيه)', 'القيمة': summary.totalBilledPurchases.toFixed(2) },
             { 'البيان': 'إجمالي وزن المشتريات (جرام)', 'القيمة': summary.monthlyPurchasesWeight.toFixed(2) },
             { 'البيان': 'إجمالي المصروفات (جنيه)', 'القيمة': summary.monthlyExpenses.toFixed(2) },
+            { 'البيان': 'الرصيد النقدي الافتتاحي (جنيه)', 'القيمة': parseFloat(openingCashBalance || 0).toFixed(2) },
             { 'البيان': 'صافي السيولة النقدية (جنيه)', 'القيمة': summary.netCashFlow.toFixed(2) },
+            { 'البيان': 'الرصيد النقدي النهائي (جنيه)', 'القيمة': summary.closingCashBalance.toFixed(2) },
+            { 'البيان': '---', 'القيمة': '---' }, // فاصل
             { 'البيان': 'رصيد الذهب الافتتاحي (جرام)', 'القيمة': parseFloat(openingGoldBalance || 0).toFixed(2) },
             { 'البيان': 'ذهب مستعمل مشترى (كسر) (جرام)', 'القيمة': parseFloat(purchasedUsedGold || 0).toFixed(2) },
             { 'البيان': 'إجمالي الذهب المسلم للتاجر (جرام)', 'القيمة': summary.totalGoldDeliveredToMerchant.toFixed(2) },
@@ -98,6 +117,11 @@ const InventoryPage = ({ totals, salesEntries, purchaseEntries, expenseEntries, 
                     تصدير إلى Excel
                 </button>
             </div>
+            <p className="inventory-note">
+                هذه الصفحة مخصصة للجرد اليومي. يتم تصفير قيم "رصيد الذهب الافتتاحي" و "الذهب الكسر المشترى" و "الرصيد النقدي الافتتاحي" تلقائياً كل يوم.
+                <br />
+                القيم المحسوبة هنا تستند إلى جميع المعاملات المسجلة اليوم.
+            </p>
             <div className="summary-grid">
                 <div className="summary-card">
                     <h3>إجمالي فواتير المبيعات</h3>
@@ -116,7 +140,12 @@ const InventoryPage = ({ totals, salesEntries, purchaseEntries, expenseEntries, 
                 <div className="summary-card profit-card">
                     <h3>صافي السيولة النقدية</h3>
                     <p className="summary-value">{summary.netCashFlow.toFixed(2)} جنيه</p>
-                    <p className="summary-label">المقبوضات - (المدفوعات + المصروفات)</p>
+                    <p className="summary-label">إجمالي الداخل - إجمالي الخارج (لليوم)</p>
+                </div>
+                <div className="summary-card inventory-card">
+                    <h3>الرصيد النقدي النهائي</h3>
+                    <p className="summary-value">{summary.closingCashBalance.toFixed(2)} جنيه</p>
+                    <p className="summary-label">الرصيد الافتتاحي + صافي سيولة اليوم</p>
                 </div>
                 <div className="summary-card inventory-card">
                     <h3>رصيد الذهب الفعلي (تقديري)</h3>
@@ -133,6 +162,17 @@ const InventoryPage = ({ totals, salesEntries, purchaseEntries, expenseEntries, 
                         placeholder="0.00"
                     />
                     <p className="summary-label">جرام</p>
+                </div>
+                <div className="summary-card">
+                    <h3>الرصيد النقدي الافتتاحي</h3>
+                    <input
+                        type="number"
+                        className="inventory-input"
+                        value={openingCashBalance}
+                        onChange={(e) => onOpeningCashBalanceChange(e.target.value)}
+                        placeholder="0.00"
+                    />
+                    <p className="summary-label">جنيه</p>
                 </div>
                 <div className="summary-card">
                     <h3>ذهب مستعمل مُشترى (كسر)</h3>

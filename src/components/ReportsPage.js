@@ -2,12 +2,14 @@ import React, { useState, useMemo } from 'react';
 import SectionCard from './SectionCard';
 import './ReportsPage.css';
 
-const ReportsPage = ({ salesEntries, purchaseEntries }) => {
+const ReportsPage = ({ salesEntries, purchaseEntries, expenseEntries, scrapTransactions, financialDebts }) => {
     const [period, setPeriod] = useState('month'); // 'today', 'week', 'month', 'all'
     const [customRange, setCustomRange] = useState({
         start: new Date().toISOString().split('T')[0],
         end: new Date().toISOString().split('T')[0],
     });
+    const [openingCashBalance, setOpeningCashBalance] = useState('');
+    const [openingCashSource, setOpeningCashSource] = useState('internal'); // 'internal' or 'external'
 
     const handleCustomRangeChange = (e) => {
         const { name, value } = e.target;
@@ -15,7 +17,30 @@ const ReportsPage = ({ salesEntries, purchaseEntries }) => {
     };
 
     const handlePrint = () => {
-        window.print();
+        // This can be expanded later to a more robust PDF generation
+        const printContent = document.querySelector('.reports-page-printable-area').innerHTML;
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>تقرير</title>
+                    <link rel="stylesheet" href="index.css"> 
+                    <style>
+                        @media print {
+                            body { padding: 20px; }
+                            .no-print { display: none !important; }
+                            .summary-grid {
+                                grid-template-columns: repeat(2, 1fr) !important;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>${printContent}</body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => { printWindow.print(); }, 500);
     };
 
     const filteredData = useMemo(() => {
@@ -55,17 +80,47 @@ const ReportsPage = ({ salesEntries, purchaseEntries }) => {
         return {
             sales: salesEntries.filter(filterByDate),
             purchases: purchaseEntries.filter(filterByDate),
+            expenses: expenseEntries.filter(filterByDate),
+            scrap: scrapTransactions.filter(filterByDate),
+            debts: financialDebts.filter(filterByDate),
+            debtPayments: financialDebts.flatMap(debt =>
+                debt.payments.filter(payment => filterByDate({ date: payment.date }))
+            ),
         };
-    }, [period, salesEntries, purchaseEntries, customRange]);
+    }, [salesEntries, purchaseEntries, expenseEntries, scrapTransactions, financialDebts, period, customRange]);
 
     const summary = useMemo(() => {
-        const salesTotal = filteredData.sales.reduce((sum, entry) => sum + parseFloat(entry.finalPrice || 0), 0);
-        const salesWeight = filteredData.sales.reduce((sum, entry) => sum + parseFloat(entry.weight || 0), 0);
-        const purchaseTotal = filteredData.purchases.reduce((sum, entry) => sum + parseFloat(entry.cost || 0), 0);
-        const purchaseWeight = filteredData.purchases.reduce((sum, entry) => sum + parseFloat(entry.weight || 0), 0);
+        const totalCashInFromSales = filteredData.sales.reduce((sum, entry) => sum + parseFloat(entry.amountPaid || 0), 0);
+        const totalCashOutForPurchases = filteredData.purchases.reduce((sum, entry) => sum + parseFloat(entry.amountPaid || 0), 0);
+        const totalCashOutForExpenses = filteredData.expenses.reduce((sum, entry) => sum + parseFloat(entry.amount || 0), 0);
+        const totalCashInFromNewDebts = filteredData.debts.reduce((sum, debt) => sum + parseFloat(debt.initialAmount || 0), 0);
+        const totalCashOutForDebtPayments = filteredData.debtPayments.reduce((sum, payment) => sum + parseFloat(payment.amount || 0), 0);
 
-        return { salesTotal, salesWeight, purchaseTotal, purchaseWeight };
-    }, [filteredData]);
+        let finalTotalCashIn = totalCashInFromSales + totalCashInFromNewDebts;
+        const finalTotalCashOut = totalCashOutForPurchases + totalCashOutForExpenses + totalCashOutForDebtPayments;
+
+        const isDailyReport = period === 'today';
+        const openingBalance = isDailyReport ? parseFloat(openingCashBalance || 0) : 0;
+
+        if (isDailyReport && openingCashSource === 'external') {
+            finalTotalCashIn += openingBalance;
+        }
+
+        const netCashFlow = finalTotalCashIn - finalTotalCashOut;
+        const closingCashBalance = isDailyReport ? (openingCashSource === 'internal' ? openingBalance + netCashFlow : netCashFlow) : netCashFlow;
+
+        const totalGoldDeliveredToMerchant = filteredData.scrap.filter(t => t.type === 'تسليم').reduce((sum, t) => sum + parseFloat(t.weight || 0), 0);
+        const totalGoldReceivedFromMerchant = filteredData.scrap.filter(t => t.type === 'استلام').reduce((sum, t) => sum + parseFloat(t.weight || 0), 0);
+
+        return {
+            netCashFlow,
+            closingCashBalance,
+            finalTotalCashIn,
+            finalTotalCashOut,
+            totalGoldDeliveredToMerchant,
+            totalGoldReceivedFromMerchant,
+        };
+    }, [filteredData, period, openingCashBalance, openingCashSource]);
 
     const periodLabels = {
         today: 'اليوم',
@@ -76,26 +131,44 @@ const ReportsPage = ({ salesEntries, purchaseEntries }) => {
     };
 
     return (
-        <div>
+        <div className="reports-page-printable-area">
             <div className="reports-page">
                 <div className="reports-page__header">
                     <h2>التقارير الملخصة</h2>
-
+                    <button onClick={handlePrint} className="button--print no-print">
+                        طباعة / تصدير PDF
+                    </button>
                 </div>
 
-                <div className="period-selector">
+                <div className="period-selector no-print">
                     <button onClick={() => setPeriod('today')} className={period === 'today' ? 'active' : ''}>اليوم</button>
                     <button onClick={() => setPeriod('week')} className={period === 'week' ? 'active' : ''}>هذا الأسبوع</button>
                     <button onClick={() => setPeriod('month')} className={period === 'month' ? 'active' : ''}>هذا الشهر</button>
                     <button onClick={() => setPeriod('custom')} className={period === 'custom' ? 'active' : ''}>فترة مخصصة</button>
                     <button onClick={() => setPeriod('all')} className={period === 'all' ? 'active' : ''}>كل الوقت</button>
                 </div>
-                <div className='printContainer'>
-                    <button onClick={handlePrint} className="button--print">
-                        طباعة / تصدير PDF
-                    </button>
-                </div>
-                {period === 'custom' && (
+
+                {period === 'today' && (
+                    <div className="opening-balance-section no-print">
+                        <label>
+                            الرصيد النقدي الافتتاحي:
+                            <input
+                                type="number"
+                                value={openingCashBalance}
+                                onChange={(e) => setOpeningCashBalance(e.target.value)}
+                                placeholder="أدخل الرصيد..."
+                            />
+                        </label>
+                        <label>
+                            مصدر الرصيد:
+                            <select value={openingCashSource} onChange={(e) => setOpeningCashSource(e.target.value)}>
+                                <option value="internal">رصيد داخلي من الخزنة</option>
+                                <option value="external">سيولة من مصدر خارجي</option>
+                            </select>
+                        </label>
+                    </div>
+                )}
+                {period === 'custom' && ( // Kept the custom range selector as it was
                     <div className="custom-range-selector">
                         <label>
                             من:
@@ -111,25 +184,37 @@ const ReportsPage = ({ salesEntries, purchaseEntries }) => {
             </div>
 
             <div className="summary-grid">
-                <div className="summary-card">
-                    <h3>إجمالي المبيعات</h3>
-                    <p className="summary-value">{summary.salesTotal.toFixed(2)} جنيه</p>
-                    <p className="summary-label">الوزن: {summary.salesWeight.toFixed(2)} جرام</p>
+                {period === 'today' && (
+                    <div className="summary-card inventory-card">
+                        <h3>الرصيد النقدي النهائي</h3>
+                        <p className={`summary-value ${summary.closingCashBalance >= 0 ? 'profit' : 'loss'}`}>{summary.closingCashBalance.toFixed(2)} جنيه</p>
+                        <p className="summary-label">الرصيد بعد عمليات اليوم</p>
+                    </div>
+                )}
+                <div className="summary-card profit-card">
+                    <h3>صافي السيولة النقدية</h3>
+                    <p className={`summary-value ${summary.netCashFlow >= 0 ? 'profit' : 'loss'}`}>{summary.netCashFlow.toFixed(2)} جنيه</p>
+                    <p className="summary-label">إجمالي الداخل - إجمالي الخارج</p>
                 </div>
                 <div className="summary-card">
-                    <h3>إجمالي المشتريات</h3>
-                    <p className="summary-value">{summary.purchaseTotal.toFixed(2)} جنيه</p>
-                    <p className="summary-label">الوزن: {summary.purchaseWeight.toFixed(2)} جرام</p>
+                    <h3>إجمالي السيولة الداخلة</h3>
+                    <p className="summary-value">{summary.finalTotalCashIn.toFixed(2)} جنيه</p>
+                    <p className="summary-label">مبيعات + ديون جديدة</p>
                 </div>
                 <div className="summary-card">
-                    <h3>صافي الربح (تقديري)</h3>
-                    <p className="summary-value">{(summary.salesTotal - summary.purchaseTotal).toFixed(2)} جنيه</p>
-                    <p className="summary-label">قيمة المبيعات - قيمة المشتريات</p>
+                    <h3>إجمالي السيولة الخارجة</h3>
+                    <p className="summary-value">{summary.finalTotalCashOut.toFixed(2)} جنيه</p>
+                    <p className="summary-label">مشتريات + مصروفات + سداد ديون</p>
                 </div>
                 <div className="summary-card">
-                    <h3>صافي حركة الذهب</h3>
-                    <p className="summary-value">{(summary.purchaseWeight - summary.salesWeight).toFixed(2)} جرام</p>
-                    <p className="summary-label">وزن المشتريات - وزن المبيعات</p>
+                    <h3>ذهب مُسلَّم للتاجر</h3>
+                    <p className="summary-value">{summary.totalGoldDeliveredToMerchant.toFixed(2)} جرام</p>
+                    <p className="summary-label">من صفحة الكسر</p>
+                </div>
+                <div className="summary-card">
+                    <h3>ذهب مُستلَم من التاجر</h3>
+                    <p className="summary-value">{summary.totalGoldReceivedFromMerchant.toFixed(2)} جرام</p>
+                    <p className="summary-label">من صفحة الكسر</p>
                 </div>
             </div>
 
@@ -139,8 +224,7 @@ const ReportsPage = ({ salesEntries, purchaseEntries }) => {
                         <tr>
                             <th>التاريخ</th>
                             <th>الوصف</th>
-                            <th>الوزن (جرام)</th>
-                            <th>السعر النهائي (جنيه)</th>
+                            <th>المبلغ المدفوع</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -149,8 +233,7 @@ const ReportsPage = ({ salesEntries, purchaseEntries }) => {
                                 <tr key={entry.id}>
                                     <td data-label="التاريخ">{entry.date}</td>
                                     <td data-label="الوصف">{entry.description}</td>
-                                    <td data-label="الوزن (جرام)">{entry.weight}</td>
-                                    <td data-label="السعر النهائي">{entry.finalPrice}</td>
+                                    <td data-label="المبلغ المدفوع">{parseFloat(entry.amountPaid || 0).toFixed(2)}</td>
                                 </tr>
                             ))
                         ) : (
@@ -166,8 +249,7 @@ const ReportsPage = ({ salesEntries, purchaseEntries }) => {
                         <tr>
                             <th>التاريخ</th>
                             <th>الوصف</th>
-                            <th>الوزن (جرام)</th>
-                            <th>التكلفة (جنيه)</th>
+                            <th>المبلغ المدفوع</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -176,8 +258,7 @@ const ReportsPage = ({ salesEntries, purchaseEntries }) => {
                                 <tr key={entry.id}>
                                     <td data-label="التاريخ">{entry.date}</td>
                                     <td data-label="الوصف">{entry.description}</td>
-                                    <td data-label="الوزن (جرام)">{entry.weight}</td>
-                                    <td data-label="التكلفة">{entry.cost}</td>
+                                    <td data-label="المبلغ المدفوع">{parseFloat(entry.amountPaid || 0).toFixed(2)}</td>
                                 </tr>
                             ))
                         ) : (

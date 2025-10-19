@@ -5,6 +5,7 @@
     margin-bottom: 1.5rem;
     flex-wrap: wrap;
     gap: 1rem;
+    padding: 3vh 10vw;
 }
 
 .reports-page h2 {
@@ -130,7 +131,8 @@
     .app-header,
     .period-selector,
     .custom-range-selector,
-    .button--print {
+    .button--print,
+    .no-print {
         display: none !important;
     }
 
@@ -180,4 +182,46 @@
 .debt-amount {
     color: var(--color-danger);
     font-weight: bold;
+}
+
+.custom-range-selector,
+.opening-balance-section {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    background-color: #f7f5ef;
+    padding: 1rem;
+    border-radius: 12px;
+}
+
+.custom-range-selector label,
+.opening-balance-section label {
+    font-weight: 600;
+    color: #6b5807;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.custom-range-selector input,
+.opening-balance-section input,
+.opening-balance-section select {
+    padding: 0.5rem;
+    border: 1px solid #d4af37;
+    border-radius: 8px;
+    transition: box-shadow 0.2s;
+}
+
+.opening-balance-section input:focus,
+.opening-balance-section select:focus,
+.custom-range-selector input:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.3);
+}
+
+.inventory-card {
+    background-color: #e6f7ff;
+    /* A light blue color */
 }
