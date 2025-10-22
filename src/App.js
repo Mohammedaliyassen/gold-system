@@ -35,7 +35,8 @@ const App = () => {
 
     const [purchaseEntries, setPurchaseEntries] = useState(() => getInitialState('purchaseEntries', []).map(entry => ({
         ...entry,
-        amountPaid: entry.amountPaid === undefined ? entry.cost : entry.amountPaid // التوافق مع البيانات القديمة
+        amountPaid: entry.amountPaid === undefined ? entry.cost : entry.amountPaid, // التوافق مع البيانات القديمة
+        supplierName: entry.supplierName || '' // التأكد من وجود اسم المورد
     })));
     const [expenseEntries, setExpenseEntries] = useState(() => getInitialState('expenseEntries', []));
     const [pricing, setPricing] = useState(() => getInitialState('pricing', {
@@ -47,8 +48,11 @@ const App = () => {
     // استخدام الدالة المساعدة لجلب البيانات عند بدء التشغيل
     const [merchants, setMerchants] = useState(() => getInitialState('merchants', []));
     const [scrapTransactions, setScrapTransactions] = useState(() => getInitialState('scrapTransactions', []));
-    const [openingGoldBalance, setOpeningGoldBalance] = useState(() => getInitialState('openingGoldBalance', 0));
-    const [purchasedUsedGold, setPurchasedUsedGold] = useState(() => getInitialState('purchasedUsedGold', 0));
+    // تعديل: فصل رصيد الذهب الافتتاحي
+    const [openingNewGoldBalance, setOpeningNewGoldBalance] = useState(() => getInitialState('openingNewGoldBalance', ''));
+    const [openingOldGoldBalance, setOpeningOldGoldBalance] = useState(() => getInitialState('openingOldGoldBalance', ''));
+
+    const [purchasedUsedGold, setPurchasedUsedGold] = useState(() => getInitialState('purchasedUsedGold', ''));
     const [financialDebts, setFinancialDebts] = useState(() => getInitialState('financialDebts', []));
 
     // State for opening cash balance in inventory
@@ -79,9 +83,13 @@ const App = () => {
     }, [expenseEntries]);
 
     // useEffect لحفظ رصيد الذهب الافتتاحي
+    // تعديل: حفظ الأرصدة الجديدة
     useEffect(() => {
-        localStorage.setItem('openingGoldBalance', JSON.stringify(openingGoldBalance));
-    }, [openingGoldBalance]);
+        localStorage.setItem('openingNewGoldBalance', JSON.stringify(openingNewGoldBalance));
+    }, [openingNewGoldBalance]);
+    useEffect(() => {
+        localStorage.setItem('openingOldGoldBalance', JSON.stringify(openingOldGoldBalance));
+    }, [openingOldGoldBalance]);
 
     // useEffect لحفظ الذهب المستعمل المشترى
     useEffect(() => {
@@ -153,8 +161,10 @@ const App = () => {
                                     salesEntries={salesEntries}
                                     purchaseEntries={purchaseEntries}
                                     expenseEntries={expenseEntries}
-                                    openingGoldBalance={openingGoldBalance}
-                                    onOpeningGoldBalanceChange={setOpeningGoldBalance}
+                                    openingNewGoldBalance={openingNewGoldBalance}
+                                    onOpeningNewGoldBalanceChange={setOpeningNewGoldBalance}
+                                    openingOldGoldBalance={openingOldGoldBalance}
+                                    onOpeningOldGoldBalanceChange={setOpeningOldGoldBalance}
                                     purchasedUsedGold={purchasedUsedGold}
                                     onPurchasedUsedGoldChange={setPurchasedUsedGold}
                                     scrapTransactions={scrapTransactions}

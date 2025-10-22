@@ -39,6 +39,14 @@
     /* Info blue for inventory */
 }
 
+.gold-balance-details {
+    font-size: 0.85rem;
+    color: #5a6878;
+    display: flex;
+    justify-content: space-around;
+    margin-top: 0.5rem;
+}
+
 .inventory-page .inventory-input {
     width: 80%;
     padding: 0.5rem;

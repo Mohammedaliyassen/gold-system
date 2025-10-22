@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import SalesSection from './SalesSection';
-import PurchaseSection from './PurchasesSection';
+import PurchasesSection from './PurchasesSection';
 import ExpensesSection from './ExpensesSection';
 import './Dashboard.css';
 
@@ -20,7 +20,7 @@ const Dashboard = ({
       case 'sales':
         return <SalesSection entries={salesEntries} onEntriesChange={onSalesEntriesChange} />;
       case 'purchases':
-        return <PurchaseSection entries={purchaseEntries} onEntriesChange={onPurchaseEntriesChange} />;
+        return <PurchasesSection entries={purchaseEntries} onEntriesChange={onPurchaseEntriesChange} />;
       case 'expenses':
         return <ExpensesSection entries={expenseEntries} onEntriesChange={onExpenseEntriesChange} />;
       default:

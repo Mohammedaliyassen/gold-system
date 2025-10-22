@@ -7,8 +7,10 @@ const InventoryPage = ({
     salesEntries,
     purchaseEntries,
     expenseEntries,
-    openingGoldBalance,
-    onOpeningGoldBalanceChange,
+    openingNewGoldBalance,
+    onOpeningNewGoldBalanceChange,
+    openingOldGoldBalance,
+    onOpeningOldGoldBalanceChange,
     purchasedUsedGold,
     onPurchasedUsedGoldChange,
     scrapTransactions,
@@ -64,6 +66,14 @@ const InventoryPage = ({
             .filter(t => t.type === 'استلام')
             .reduce((sum, t) => sum + parseFloat(t.weight || 0), 0);
 
+        // --- Gold Balance Calculation ---
+        const openingNewGold = parseFloat(openingNewGoldBalance || 0);
+        const openingOldGold = parseFloat(openingOldGoldBalance || 0);
+        const purchasedScrap = parseFloat(purchasedUsedGold || 0);
+
+        const endingNewGoldBalance = openingNewGold + totalPurchaseWeight - totalSalesWeight;
+        const endingOldGoldBalance = (openingOldGold + purchasedScrap + totalGoldReceivedFromMerchant) - totalGoldDeliveredToMerchant;
+        const endingTotalGoldBalance = endingNewGoldBalance + endingOldGoldBalance;
 
         return {
             totalBilledSales: totals.salesTotal,
@@ -71,7 +81,9 @@ const InventoryPage = ({
             totalBilledPurchases: totals.purchaseTotal,
             monthlyPurchasesWeight: totalPurchaseWeight,
             monthlyExpenses: totals.expenseTotal,
-            endingInventoryEstimate: (parseFloat(openingGoldBalance || 0) + totalPurchaseWeight + parseFloat(purchasedUsedGold || 0) + totalGoldReceivedFromMerchant) - (totalSalesWeight + totalGoldDeliveredToMerchant),
+            endingTotalGoldBalance,
+            endingNewGoldBalance,
+            endingOldGoldBalance,
             netCashFlow,
             closingCashBalance,
             totalCashIn: finalTotalCashIn,
@@ -81,7 +93,7 @@ const InventoryPage = ({
             totalCashInFromNewDebts,
             totalCashOutForDebtPayments,
         };
-    }, [totals, salesEntries, purchaseEntries, expenseEntries, openingGoldBalance, purchasedUsedGold, scrapTransactions, financialDebts, openingCashBalance]);
+    }, [totals, salesEntries, purchaseEntries, expenseEntries, openingNewGoldBalance, openingOldGoldBalance, purchasedUsedGold, scrapTransactions, financialDebts, openingCashBalance]);
 
     const handleExport = () => {
         const dataToExport = [
@@ -94,11 +106,14 @@ const InventoryPage = ({
             { 'البيان': 'صافي السيولة النقدية (جنيه)', 'القيمة': summary.netCashFlow.toFixed(2) },
             { 'البيان': 'الرصيد النقدي النهائي (جنيه)', 'القيمة': summary.closingCashBalance.toFixed(2) },
             { 'البيان': '---', 'القيمة': '---' }, // فاصل
-            { 'البيان': 'رصيد الذهب الافتتاحي (جرام)', 'القيمة': parseFloat(openingGoldBalance || 0).toFixed(2) },
+            { 'البيان': 'رصيد المشغولات الافتتاحي (جرام)', 'القيمة': parseFloat(openingNewGoldBalance || 0).toFixed(2) },
+            { 'البيان': 'رصيد الكسر الافتتاحي (جرام)', 'القيمة': parseFloat(openingOldGoldBalance || 0).toFixed(2) },
             { 'البيان': 'ذهب مستعمل مشترى (كسر) (جرام)', 'القيمة': parseFloat(purchasedUsedGold || 0).toFixed(2) },
             { 'البيان': 'إجمالي الذهب المسلم للتاجر (جرام)', 'القيمة': summary.totalGoldDeliveredToMerchant.toFixed(2) },
             { 'البيان': 'إجمالي الذهب المستلم من التاجر (جرام)', 'القيمة': summary.totalGoldReceivedFromMerchant.toFixed(2) },
-            { 'البيان': 'رصيد الذهب الفعلي (تقديري) (جرام)', 'القيمة': summary.endingInventoryEstimate.toFixed(2) },
+            { 'البيان': 'الرصيد النهائي للمشغولات (جرام)', 'القيمة': summary.endingNewGoldBalance.toFixed(2) },
+            { 'البيان': 'الرصيد النهائي للكسر (جرام)', 'القيمة': summary.endingOldGoldBalance.toFixed(2) },
+            { 'البيان': 'إجمالي رصيد الذهب الفعلي (جرام)', 'القيمة': summary.endingTotalGoldBalance.toFixed(2) },
         ];
         exportToExcel(dataToExport, 'تقرير_الجرد_والأرباح');
     };
@@ -148,17 +163,31 @@ const InventoryPage = ({
                     <p className="summary-label">الرصيد الافتتاحي + صافي سيولة اليوم</p>
                 </div>
                 <div className="summary-card inventory-card">
-                    <h3>رصيد الذهب الفعلي (تقديري)</h3>
-                    <p className="summary-value">{summary.endingInventoryEstimate.toFixed(2)} جرام</p>
-                    <p className="summary-label">الرصيد الحالي للذهب في المحل</p>
+                    <h3>إجمالي رصيد الذهب الفعلي</h3>
+                    <p className="summary-value">{summary.endingTotalGoldBalance.toFixed(2)} جرام</p>
+                    <div className="gold-balance-details">
+                        <span>مشغولات: {summary.endingNewGoldBalance.toFixed(2)}</span>
+                        <span>كسر: {summary.endingOldGoldBalance.toFixed(2)}</span>
+                    </div>
                 </div>
                 <div className="summary-card">
-                    <h3>رصيد الذهب الافتتاحي</h3>
+                    <h3>رصيد المشغولات الافتتاحي</h3>
                     <input
                         type="number"
                         className="inventory-input"
-                        value={openingGoldBalance}
-                        onChange={(e) => onOpeningGoldBalanceChange(e.target.value)}
+                        value={openingNewGoldBalance}
+                        onChange={(e) => onOpeningNewGoldBalanceChange(e.target.value)}
+                        placeholder="0.00"
+                    />
+                    <p className="summary-label">جرام</p>
+                </div>
+                <div className="summary-card">
+                    <h3>رصيد الكسر الافتتاحي</h3>
+                    <input
+                        type="number"
+                        className="inventory-input"
+                        value={openingOldGoldBalance}
+                        onChange={(e) => onOpeningOldGoldBalanceChange(e.target.value)}
                         placeholder="0.00"
                     />
                     <p className="summary-label">جرام</p>

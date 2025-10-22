@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import SectionCard from "./SectionCard";
-import { exportToExcel } from './exportToExcel';
+import SectionCard from './SectionCard';
+import { exportToExcel } from '../utils/exportToExcel';
 
 const ExpensesSection = ({ entries, onEntriesChange }) => {
     const today = new Date().toISOString().split('T')[0];
@@ -9,32 +9,26 @@ const ExpensesSection = ({ entries, onEntriesChange }) => {
     const [searchTerm, setSearchTerm] = useState('');
 
     const [formData, setFormData] = useState({
+        description: '',
+        amount: '',
         date: today,
-        category: "",
-        amount: "",
-        note: "",
     });
 
-    const handleInputChange = (event) => {
-        const { name, value } = event.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleEditInputChange = (event) => {
-        const { name, value } = event.target;
+    const handleEditInputChange = (e) => {
+        const { name, value } = e.target;
         setEditedData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        if (!formData.category || !formData.amount) {
-            return;
-        }
-        onEntriesChange((prevEntries) => [
-            ...prevEntries,
-            { ...formData, id: Date.now().toString() },
-        ]);
-        setFormData({ date: today, category: "", amount: "", note: "" });
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!formData.description || !formData.amount) return;
+        onEntriesChange(prev => [...prev, { ...formData, id: Date.now().toString() }]);
+        setFormData({ description: '', amount: '', date: today });
     };
 
     const handleStartEdit = (entry) => {
@@ -48,46 +42,36 @@ const ExpensesSection = ({ entries, onEntriesChange }) => {
     };
 
     const handleUpdateEntry = (id) => {
-        const updatedEntries = entries.map(entry =>
-            entry.id === id ? editedData : entry
-        );
-        onEntriesChange(updatedEntries);
+        onEntriesChange(prev => prev.map(entry => entry.id === id ? editedData : entry));
         handleCancelEdit();
     };
 
     const handleDeleteEntry = (id) => {
-        if (window.confirm("هل أنت متأكد من حذف هذا الإدخال؟")) {
-            const filteredEntries = entries.filter(entry => entry.id !== id);
-            onEntriesChange(filteredEntries);
-        }
-    };
-
-    const handleClearAll = () => {
-        if (window.confirm("هل أنت متأكد من رغبتك في حذف جميع المصروفات؟")) {
-            onEntriesChange([]);
+        if (window.confirm("هل أنت متأكد من حذف هذا المصروف؟")) {
+            onEntriesChange(prev => prev.filter(entry => entry.id !== id));
         }
     };
 
     const handleExport = () => {
         const dataToExport = filteredEntries.map(entry => ({
             'التاريخ': entry.date,
-            'الفئة': entry.category,
+            'بيان المصروف': entry.description,
             'المبلغ (جنيه)': entry.amount,
-            'ملاحظات': entry.note
         }));
-        // The function will export the currently filtered data
         exportToExcel(dataToExport, 'تقرير_المصروفات');
     };
 
     const filteredEntries = useMemo(() => {
-        if (!searchTerm) {
-            return entries;
-        }
+        if (!searchTerm) return entries;
         return entries.filter(entry =>
-            (entry.category?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
-            (entry.note?.toLowerCase() || '').includes(searchTerm.toLowerCase())
+            (entry.description?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (entry.date?.toLowerCase() || '').includes(searchTerm.toLowerCase())
         );
     }, [entries, searchTerm]);
+
+    const totalAmount = useMemo(() => {
+        return filteredEntries.reduce((sum, entry) => sum + parseFloat(entry.amount || 0), 0);
+    }, [filteredEntries]);
 
     return (
         <SectionCard title="المصروفات اليومية">
@@ -97,20 +81,15 @@ const ExpensesSection = ({ entries, onEntriesChange }) => {
                     <input name="date" type="date" value={formData.date} onChange={handleInputChange} required />
                 </label>
                 <label>
-                    الفئة
-                    <input name="category" type="text" value={formData.category} onChange={handleInputChange} placeholder="إيجار" required />
+                    بيان المصروف
+                    <input name="description" type="text" value={formData.description} onChange={handleInputChange} placeholder="إيجار المحل" required />
                 </label>
                 <label>
                     المبلغ (جنيه)
                     <input name="amount" type="number" min="0" step="0.01" value={formData.amount} onChange={handleInputChange} placeholder="500" required />
                 </label>
-                <label>
-                    ملاحظات
-                    <input name="note" type="text" value={formData.note} onChange={handleInputChange} placeholder="مصروفات إدارية" />
-                </label>
                 <div className="section-form__actions">
                     <button type="submit">إضافة مصروف</button>
-                    <button type="button" onClick={handleClearAll} className="button--danger">حذف كل المصروفات</button>
                     <button type="button" onClick={handleExport} className="button--secondary">تصدير إلى Excel</button>
                 </div>
             </form>
@@ -118,7 +97,7 @@ const ExpensesSection = ({ entries, onEntriesChange }) => {
             <div className="search-bar">
                 <input
                     type="text"
-                    placeholder="ابحث في المصروفات (بالفئة أو الملاحظات)..."
+                    placeholder="ابحث في المصروفات..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -128,25 +107,23 @@ const ExpensesSection = ({ entries, onEntriesChange }) => {
                 <thead>
                     <tr>
                         <th>التاريخ</th>
-                        <th>الفئة</th>
+                        <th>البيان</th>
                         <th>المبلغ (جنيه)</th>
-                        <th>ملاحظات</th>
                         <th>إجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
                     {filteredEntries.length === 0 ? (
                         <tr>
-                            <td colSpan={5} className="empty-cell">لم يتم تسجيل مصروفات بعد.</td>
+                            <td colSpan="4" className="empty-cell">لم يتم تسجيل مصروفات بعد.</td>
                         </tr>
                     ) : (
-                        filteredEntries.map((entry) =>
+                        filteredEntries.map(entry => (
                             editingId === entry.id ? (
                                 <tr key={entry.id} className="editing-row">
                                     <td><input type="date" name="date" value={editedData.date} onChange={handleEditInputChange} /></td>
-                                    <td><input type="text" name="category" value={editedData.category} onChange={handleEditInputChange} /></td>
+                                    <td><input type="text" name="description" value={editedData.description} onChange={handleEditInputChange} /></td>
                                     <td><input type="number" name="amount" value={editedData.amount} onChange={handleEditInputChange} /></td>
-                                    <td><input type="text" name="note" value={editedData.note} onChange={handleEditInputChange} /></td>
                                     <td className="actions-cell">
                                         <button onClick={() => handleUpdateEntry(entry.id)} className="button--success-small">حفظ</button>
                                         <button onClick={handleCancelEdit} className="button--secondary-small">إلغاء</button>
@@ -155,22 +132,24 @@ const ExpensesSection = ({ entries, onEntriesChange }) => {
                             ) : (
                                 <tr key={entry.id}>
                                     <td data-label="التاريخ">{entry.date}</td>
-                                    <td data-label="الفئة">{entry.category}</td>
+                                    <td data-label="البيان">{entry.description}</td>
                                     <td data-label="المبلغ">{entry.amount}</td>
-                                    <td data-label="ملاحظات">{entry.note || '-'}</td>
                                     <td className="actions-cell">
-                                        <button onClick={() => handleStartEdit(entry)} className="button--secondary-small">
-                                            تعديل
-                                        </button>
-                                        <button onClick={() => handleDeleteEntry(entry.id)} className="button--danger-small">
-                                            حذف
-                                        </button>
+                                        <button onClick={() => handleStartEdit(entry)} className="button--secondary-small">تعديل</button>
+                                        <button onClick={() => handleDeleteEntry(entry.id)} className="button--danger-small">حذف</button>
                                     </td>
                                 </tr>
                             )
-                        )
+                        ))
                     )}
                 </tbody>
+                <tfoot>
+                    <tr className="totals-row">
+                        <td colSpan="2">الإجمالي</td>
+                        <td data-label="إجمالي المبلغ">{totalAmount.toFixed(2)}</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
             </table>
         </SectionCard>
     );

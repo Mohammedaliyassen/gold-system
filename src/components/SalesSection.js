@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import SectionCard from "./SectionCard";
-import { exportToExcel } from './exportToExcel';
+import { exportToExcel } from '../utils/exportToExcel';
 
 const SalesSection = ({ entries, onEntriesChange }) => {
     const today = new Date().toISOString().split('T')[0];
@@ -103,6 +103,19 @@ const SalesSection = ({ entries, onEntriesChange }) => {
             (entry.customerName?.toLowerCase() || '').includes(searchTerm.toLowerCase())
         );
     }, [entries, searchTerm]);
+
+    const totals = useMemo(() => {
+        return filteredEntries.reduce(
+            (acc, entry) => {
+                acc.totalWeight += parseFloat(entry.weight || 0);
+                acc.totalFinalPrice += parseFloat(entry.finalPrice || 0);
+                acc.totalAmountPaid += parseFloat(entry.amountPaid || 0);
+                acc.totalRemaining = acc.totalFinalPrice - acc.totalAmountPaid;
+                return acc;
+            },
+            { totalWeight: 0, totalFinalPrice: 0, totalAmountPaid: 0, totalRemaining: 0 }
+        );
+    }, [filteredEntries]);
 
     return (
         <SectionCard title="المبيعات اليومية">
@@ -226,7 +239,7 @@ const SalesSection = ({ entries, onEntriesChange }) => {
                 <tbody>
                     {filteredEntries.length === 0 ? (
                         <tr>
-                            <td colSpan={9} className="empty-cell">لم يتم تسجيل مبيعات بعد.</td>
+                            <td colSpan={10} className="empty-cell">لم يتم تسجيل مبيعات بعد.</td>
                         </tr>
                     ) : (
                         filteredEntries.map((entry) =>
@@ -277,6 +290,17 @@ const SalesSection = ({ entries, onEntriesChange }) => {
                         )
                     )}
                 </tbody>
+                <tfoot>
+                    <tr className="totals-row">
+                        <td colSpan="4">الإجمالي</td>
+                        <td data-label="إجمالي الوزن">{totals.totalWeight.toFixed(2)}</td>
+                        <td></td>
+                        <td data-label="إجمالي السعر">{totals.totalFinalPrice.toFixed(2)}</td>
+                        <td data-label="إجمالي المدفوع">{totals.totalAmountPaid.toFixed(2)}</td>
+                        <td data-label="إجمالي المتبقي" className={totals.totalRemaining > 0 ? 'debt-amount' : ''}>{totals.totalRemaining.toFixed(2)}</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
             </table>
         </SectionCard>
     );
